@@ -1,6 +1,6 @@
 from torch.optim import SGD, Adam
 from torch.optim.lr_scheduler import MultiStepLR
-from torchvision.models.densenet import DenseNet
+from densenet import DenseNet
 import torch.nn.functional as F
 from torch import nn
 import torch
