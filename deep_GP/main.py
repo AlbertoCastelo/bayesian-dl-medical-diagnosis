@@ -12,7 +12,7 @@ import gpytorch
 from deep_GP.models import DenseNetFeatureExtractor, DKLModel
 
 img_size = 32
-batch_size = 64
+batch_size = 512
 
 
 # aug_trans = [transforms.RandomCrop(32, padding=4), transforms.RandomHorizontalFlip()]
