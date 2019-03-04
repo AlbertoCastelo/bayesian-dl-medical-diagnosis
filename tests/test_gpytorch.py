@@ -46,7 +46,7 @@ class DenseNetFeatureExtractor(DenseNet):
         return out
 
 
-feature_extractor = DenseNetFeatureExtractor(block_config=(6, 6, 6), num_classes=num_classes).cuda()
+feature_extractor = DenseNetFeatureExtractor(block_config=(6, 6, 6), n_channels=3, num_classes=num_classes).cuda()
 num_features = feature_extractor.classifier.in_features
 
 

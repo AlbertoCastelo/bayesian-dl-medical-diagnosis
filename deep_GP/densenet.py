@@ -66,6 +66,7 @@ class DenseNet(nn.Module):
         growth_rate=12,
         block_config=(16, 16, 16),
         compression=0.5,
+        n_channels=3,
         num_init_features=24,
         bn_size=4,
         drop_rate=0,
@@ -79,7 +80,7 @@ class DenseNet(nn.Module):
 
         # First convolution
         self.features = nn.Sequential(
-            OrderedDict([("conv0", nn.Conv2d(3, num_init_features, kernel_size=3, stride=1, padding=1, bias=False))])
+            OrderedDict([("conv0", nn.Conv2d(n_channels, num_init_features, kernel_size=3, stride=1, padding=1, bias=False))])
         )
 
         # Each denseblock
