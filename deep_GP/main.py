@@ -1,15 +1,14 @@
-from torch.optim import SGD, Adam
+from torch.optim import SGD
 from torch.optim.lr_scheduler import MultiStepLR
 
 from deep_GP.dataset.x_ray_binary import XRayBinary
-from torch import nn
 import torch
 import torchvision.transforms as transforms
 import gpytorch
 
 
 # parameters
-from deep_GP.models import DenseNetFeatureExtractor, DKLModel
+from deep_GP.models.deep_kernel_model import DenseNetFeatureExtractor, DKLModel
 
 img_size = 32
 batch_size = 512
