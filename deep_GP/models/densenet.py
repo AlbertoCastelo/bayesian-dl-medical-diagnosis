@@ -114,3 +114,11 @@ class DenseNet(nn.Module):
         out = F.avg_pool2d(out, kernel_size=self.avgpool_size).view(features.size(0), -1)
         out = self.classifier(out)
         return out
+
+
+class DenseNetFeatureExtractor(DenseNet):
+    def forward(self, x):
+        features = self.features(x)
+        out = F.relu(features, inplace=True)
+        out = F.avg_pool2d(out, kernel_size=self.avgpool_size).view(features.size(0), -1)
+        return out

@@ -1,17 +1,5 @@
-import math
-import torch
 import gpytorch
-import torch.nn.functional as F
-from deep_GP.densenet import DenseNet
 from deep_GP.models.gaussian_process_layer import GaussianProcessLayer
-
-
-class DenseNetFeatureExtractor(DenseNet):
-    def forward(self, x):
-        features = self.features(x)
-        out = F.relu(features, inplace=True)
-        out = F.avg_pool2d(out, kernel_size=self.avgpool_size).view(features.size(0), -1)
-        return out
 
 
 # Create DKL Model
