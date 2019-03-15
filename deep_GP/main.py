@@ -10,14 +10,16 @@ import gpytorch
 # parameters
 from deep_GP.models.densenet import DenseNetFeatureExtractor
 from deep_GP.models.deep_kernel_model import DKLModel
+from deep_GP.models.resnet34 import ResNetFeatureExtractor
 
-img_size = 32
-batch_size = 512
-feature_extractor_type = 'densenet'
+# feature_extractor_type = 'densenet'
+feature_extractor_type = 'resnet'
 
 if feature_extractor_type == 'densenet':
     img_size = 32
-elif feature_extractor_type == 'resnet34':
+    batch_size = 512
+elif feature_extractor_type == 'resnet':
+    batch_size = 256-16
     img_size = 224
 
 
@@ -47,9 +49,9 @@ num_classes = 2
 if feature_extractor_type == 'densenet':
     feature_extractor = DenseNetFeatureExtractor(block_config=(6, 6, 6), n_channels=1, num_classes=num_classes).cuda()
     num_features = feature_extractor.classifier.in_features
-elif feature_extractor_type == 'resnet34':
-    feature_extractor = ResNet34FeatureExtractor().cuda()
-    num_features = feature_extractor.classifier.in_features
+elif feature_extractor_type == 'resnet':
+    feature_extractor = ResNetFeatureExtractor(num_classes=2).cuda()
+    num_features = feature_extractor.fc.in_features
 
 # define model
 model = DKLModel(feature_extractor, num_dim=num_features).cuda()
