@@ -59,6 +59,7 @@ optimizer = SGD([
 scheduler = MultiStepLR(optimizer, milestones=[0.5 * n_epochs, 0.75 * n_epochs], gamma=0.1)
 criterion = CrossEntropyLoss()
 
+
 def validation():
 
     correct = 0
@@ -66,8 +67,8 @@ def validation():
         data, target = data.cuda(), target.cuda()
         with torch.no_grad():
             output = model(data)
-            pred = output.probs.argmax(1)
-            correct += pred.eq(target.view_as(pred)).cpu().sum()
+            _, predicted = torch.max(output.data, 1)
+            correct += (predicted == target).sum().item()
     print('Test set: Accuracy: {}/{} ({}%)'.format(
         correct, len(val_loader.dataset), 100. * correct / float(len(val_loader.dataset))
     ))
