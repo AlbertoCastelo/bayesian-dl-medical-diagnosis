@@ -14,6 +14,7 @@ from deep_GP.models.resnet34 import ResNetFeatureExtractor
 
 # feature_extractor_type = 'densenet'
 feature_extractor_type = 'resnet'
+is_debug = False
 
 if feature_extractor_type == 'densenet':
     img_size = 32
@@ -22,6 +23,8 @@ elif feature_extractor_type == 'resnet':
     batch_size = 256-16
     img_size = 224
 
+if is_debug:
+    batch_size = 64
 
 # aug_trans = [transforms.RandomCrop(32, padding=4), transforms.RandomHorizontalFlip()]
 common_trans = [
@@ -37,9 +40,10 @@ torch.cuda.set_device(0)
 
 # Generate DataLoaders
 print('Creating DataLoaders')
-data_path = '/home/alberto/Desktop/repos/bayesian-deep-learning/bayesian-dl-xray/data/x_ray_data'
-train_set = XRayBinary(path=data_path, img_size=img_size, is_train=True, transform=transform_train)
-val_set = XRayBinary(path=data_path, img_size=img_size, is_train=False, transform=transform_val)
+data_path = '/home/alberto/Desktop/repos/random/xray-bayesian-dl/data/x_ray_data'
+# data_path = '/home/alberto/Desktop/repos/bayesian-deep-learning/bayesian-dl-xray/data/x_ray_data'
+train_set = XRayBinary(path=data_path, img_size=img_size, is_train=True, transform=transform_train, is_debug=is_debug)
+val_set = XRayBinary(path=data_path, img_size=img_size, is_train=False, transform=transform_val, is_debug=is_debug)
 
 train_loader = torch.utils.data.DataLoader(train_set, batch_size=batch_size, shuffle=True, num_workers=4)
 val_loader = torch.utils.data.DataLoader(val_set, batch_size=batch_size, shuffle=False, num_workers=4)
