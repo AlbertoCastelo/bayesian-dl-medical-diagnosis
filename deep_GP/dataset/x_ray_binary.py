@@ -14,10 +14,11 @@ FILENAME_LABELS_BINARY = 'Data_Entry_2017_Binary.csv'
 class XRayBinary(Dataset):
     """X-Ray Dataset with binary labeling: Finding/No-Finding"""
 
-    def __init__(self, path, img_size=64, is_train=False, transform=None):
+    def __init__(self, path, img_size=64, is_train=False, transform=None, is_debug=False):
         self.path = path
         self.img_size = img_size
         self.is_train = is_train
+        self.is_debug = is_debug
 
         self.transform = transform
         if self.transform is None:
@@ -45,7 +46,8 @@ class XRayBinary(Dataset):
         self.x_ray_df.loc[self.x_ray_df['Binary Labels'] == 'Finding', ['target']] = 1
         self.img_filenames = list(self.image_paths.keys())
         # TODO: make lazy loader
-        # self.img_filenames = self.img_filenames[:512]
+        if is_debug:
+            self.img_filenames = self.img_filenames[:512]
         self.img_label = np.array(
             [self.x_ray_df.loc[filename, ['target']].values[0] for filename in self.img_filenames])
 
