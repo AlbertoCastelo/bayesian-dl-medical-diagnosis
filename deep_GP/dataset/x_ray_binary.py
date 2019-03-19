@@ -14,10 +14,11 @@ FILENAME_LABELS_BINARY = 'Data_Entry_2017_Binary.csv'
 class XRayBinary(Dataset):
     """X-Ray Dataset with binary labeling: Finding/No-Finding"""
 
-    def __init__(self, path, img_size=64, is_train=False, transform=None, is_debug=False):
+    def __init__(self, path, img_size=64, is_train=False, transform=None, n_channels=1, is_debug=False):
         self.path = path
         self.img_size = img_size
         self.is_train = is_train
+        self.n_channels = n_channels
         self.is_debug = is_debug
 
         self.transform = transform
@@ -55,7 +56,13 @@ class XRayBinary(Dataset):
         return len(self.img_label)
 
     def __getitem__(self, idx):
-        img = self.get_grayscale_image_from_file(self.img_filenames[idx])
+        if self.n_channels == 1:
+            img = self.get_grayscale_image_from_file(self.img_filenames[idx])
+        elif self.n_channels == 3:
+            img = self.get_rgb_image_from_file(self.img_filenames[idx])
+        else:
+            raise Exception
+
         img = self.transform(img)
         # if img.shape[0] > 1:
         #     print(self.img_filenames[idx])

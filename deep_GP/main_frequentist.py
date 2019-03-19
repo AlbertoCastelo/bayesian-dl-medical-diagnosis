@@ -1,6 +1,7 @@
 from torch.nn import CrossEntropyLoss
 from torch.optim import SGD
 from torch.optim.lr_scheduler import MultiStepLR
+from torchvision.models import resnet18
 
 from deep_GP.dataset.x_ray_binary import XRayBinary
 import torch
@@ -9,12 +10,20 @@ import torchvision.transforms as transforms
 from deep_GP.models.resnet34 import ResNet
 
 # feature_extractor_type = 'densenet'
-feature_extractor_type = 'resnet'
-is_debug = True
+feature_extractor_type = 'resnet18'
+is_debug = False
+
+n_epochs = 100
+lr = 0.1
 
 if feature_extractor_type == 'resnet':
     batch_size = 256-16
     img_size = 224
+    n_channels = 1
+elif feature_extractor_type == 'resnet18':
+    batch_size = 128
+    img_size = 224
+    n_channels = 3
 else:
     raise Exception
 
@@ -25,7 +34,7 @@ if is_debug:
 common_trans = [
     transforms.Resize((img_size, img_size)),
     transforms.ToTensor(),
-    transforms.Normalize(mean=[0.6], std=[0.2])
+    transforms.Normalize(mean=[0.6]*n_channels, std=[0.2]*n_channels)
 ]
 transform_train = transforms.Compose(common_trans)
 transform_val = transforms.Compose(common_trans)
@@ -35,10 +44,12 @@ torch.cuda.set_device(0)
 
 # Generate DataLoaders
 print('Creating DataLoaders')
-data_path = '/home/alberto/Desktop/repos/random/xray-bayesian-dl/data/x_ray_data'
-# data_path = '/home/alberto/Desktop/repos/bayesian-deep-learning/bayesian-dl-xray/data/x_ray_data'
-train_set = XRayBinary(path=data_path, img_size=img_size, is_train=True, transform=transform_train, is_debug=is_debug)
-val_set = XRayBinary(path=data_path, img_size=img_size, is_train=False, transform=transform_val, is_debug=is_debug)
+# data_path = '/home/alberto/Desktop/repos/random/xray-bayesian-dl/data/x_ray_data'
+data_path = '/home/alberto/Desktop/repos/bayesian-deep-learning/bayesian-dl-xray/data/x_ray_data'
+train_set = XRayBinary(path=data_path, img_size=img_size, is_train=True, transform=transform_train,
+                       n_channels=n_channels, is_debug=is_debug)
+val_set = XRayBinary(path=data_path, img_size=img_size, is_train=False, transform=transform_val,
+                     n_channels=n_channels, is_debug=is_debug)
 
 train_loader = torch.utils.data.DataLoader(train_set, batch_size=batch_size, shuffle=True, num_workers=4)
 val_loader = torch.utils.data.DataLoader(val_set, batch_size=batch_size, shuffle=False, num_workers=4)
@@ -48,11 +59,10 @@ print('Creating Model')
 # create Feature Extractor
 if feature_extractor_type == 'resnet':
     model = ResNet(num_classes=num_classes).cuda()
-
+if feature_extractor_type == 'resnet18':
+    model = resnet18(pretrained=True).cuda()
 
 # Define Training and Testing
-n_epochs = 300
-lr = 0.1
 optimizer = SGD([
     {'params': model.parameters()}
 ], lr=lr, momentum=0.9, nesterov=True, weight_decay=0)
