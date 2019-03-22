@@ -9,7 +9,7 @@ from deep_GP.dataset.x_ray_binary import XRayBinary
 import torch
 import torchvision.transforms as transforms
 
-from deep_GP.models.resnet34 import ResNet
+from deep_GP.models.resnet_bw import ResNetBW
 
 # model_type = 'densenet'
 model_type = 'resnet18'
@@ -23,7 +23,7 @@ n_epochs = 100
 lr = 0.1
 
 
-config = load_configuration(filename=f'{model_type}-{dataset}.json')
+config = load_configuration(filename=f'freq-{model_type}-{dataset}.json')
 batch_size = config['batch_size']
 img_size = config['img_size']
 n_channels = config['n_channels']
@@ -69,8 +69,8 @@ val_loader = torch.utils.data.DataLoader(val_set, batch_size=batch_size, shuffle
 print('Creating Model')
 # create Feature Extractor
 if model_type == 'resnet':
-    model = ResNet(num_classes=num_classes).cuda()
-if model_type == 'resnet18':
+    model = ResNetBW(num_classes=num_classes).cuda()
+elif model_type == 'resnet18':
     model = resnet18(pretrained=True).cuda()
 
 # Define Training and Testing
@@ -118,4 +118,4 @@ for epoch in range(1, n_epochs + 1):
     validation()
 
     state_dict = model.state_dict()
-    torch.save({'model': state_dict}, f'{model_type}-{dataset}.dat')
+    torch.save({'model': state_dict}, f'frequentist-{model_type}-{dataset}.dat')
