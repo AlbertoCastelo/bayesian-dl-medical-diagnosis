@@ -12,8 +12,9 @@ from PIL import Image
 class HistoPathologicCancer(Dataset):
     """Histo-Pathologic Cancer Dataset with binary labeling: Finding/No-Finding"""
 
-    def __init__(self, path=None, img_size=64, is_train=False, transform=None, n_channels=1, is_debug=False):
-        self.path = path if path is not None else '/home/alberto/Desktop/datasets/histopathologic-cancer-detection/'
+    def __init__(self, path=None, img_size=64, is_train=False, transform=None, n_channels=3, is_debug=False):
+        self.path = path if path is not None \
+            else '/home/alberto/Desktop/datasets/histopathologic-cancer-detection/'
         self.img_size = img_size
         self.is_train = is_train
         self.n_channels = n_channels
@@ -36,15 +37,18 @@ class HistoPathologicCancer(Dataset):
         return len(self.df_label_img)
 
     def __getitem__(self, idx):
-        img = self.get_rgb_image_from_file(os.path.join(self.path, 'train', ''.join([self.df_label_img[idx], '.tif'])))
+        item = self.df_label_img.iloc[idx]
+
+        img = self.get_rgb_image_from_file(os.path.join(self.path, 'train', ''.join([item['id'],
+                                                                                     '.tif'])))
         img = self.transform(img)
 
-        label = np.array(self.df_label_img[idx])
+        label = np.array(item['label'])
         label = torch.from_numpy(label)
         return img, label
 
     def load_image_from_file(self, filename):
-        return Image.open(self.image_paths[filename])
+        return Image.open(filename)
 
     def get_rgb_image_from_file(self, filename):
         return self.load_image_from_file(filename).convert('RGB')
