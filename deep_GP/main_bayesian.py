@@ -27,7 +27,7 @@ n_epochs = 100
 lr = 0.1
 
 
-config = load_configuration(filename=f'{model_type}-{dataset}.json')
+config = load_configuration(filename=f'bayes-{model_type}-{dataset}.json')
 batch_size = config['batch_size']
 img_size = config['img_size']
 n_channels = config['n_channels']
@@ -89,8 +89,6 @@ likelihood = gpytorch.likelihoods.SoftmaxLikelihood(num_features=model.num_dim, 
 
 
 # Define Training and Testing
-n_epochs = 300
-lr = 0.1
 optimizer = SGD([
     {'params': model.feature_extractor.parameters()},
     {'params': model.gp_layer.hyperparameters(), 'lr': lr * 0.01},
@@ -111,10 +109,9 @@ def validation():
             output = likelihood(model(data))
             pred = output.probs.argmax(1)
             correct += pred.eq(target.view_as(pred)).cpu().sum()
-    print('Test set: Accuracy: {}/{} ({}%)'.format(
-        correct, len(val_loader.dataset), 100. * correct / float(len(val_loader.dataset))
-    ))
-
+    accuracy = 100. * correct / float(len(val_loader.dataset))
+    print(f'Test set: Accuracy: {correct}/{len(val_loader.dataset)} ({accuracy}%)')
+    return accuracy
 
 def train(epoch):
     model.train()
@@ -136,11 +133,15 @@ def train(epoch):
 
 # Train the Model
 print('Training Model')
+accuracy_val_top = 0
 for epoch in range(1, n_epochs + 1):
     scheduler.step()
+
     with gpytorch.settings.use_toeplitz(False), gpytorch.settings.max_preconditioner_size(0):
         train(epoch)
-        validation()
-    state_dict = model.state_dict()
-    likelihood_state_dict = likelihood.state_dict()
-    torch.save({'model': state_dict, 'likelihood': likelihood_state_dict}, 'dkl_cifar_checkpoint.dat')
+        accuracy_val = validation()
+        if accuracy_val > accuracy_val_top:
+            print('Saving Model')
+            state_dict = model.state_dict()
+            likelihood_state_dict = likelihood.state_dict()
+            torch.save({'model': state_dict, 'likelihood': likelihood_state_dict}, f'bayes-{model_type}-{dataset}.dat')
