@@ -1,6 +1,8 @@
 from torch.optim import SGD
 from torch.optim.lr_scheduler import MultiStepLR
 
+from deep_GP.configuration.loader import load_configuration
+from deep_GP.dataset.histopathologic_cancer_dataset import HistoPathologicCancer
 from deep_GP.dataset.x_ray_binary import XRayBinary
 import torch
 import torchvision.transforms as transforms
@@ -10,18 +12,25 @@ import gpytorch
 # parameters
 from deep_GP.models.densenet import DenseNetFeatureExtractor
 from deep_GP.models.deep_kernel_model import DKLModel
-from deep_GP.models.resnet34 import ResNetFeatureExtractor
+from deep_GP.models.resnet18 import ResNet18FeatureExtractor
+from deep_GP.models.resnet_bw import ResNetBWFeatureExtractor
 
-# feature_extractor_type = 'densenet'
-feature_extractor_type = 'resnet'
+# model_type = 'densenet'
+model_type = 'resnet18'
+
+# dataset = 'x_ray_binary'
+dataset = 'cancer'
+
 is_debug = False
 
-if feature_extractor_type == 'densenet':
-    img_size = 32
-    batch_size = 512
-elif feature_extractor_type == 'resnet':
-    batch_size = 256-16
-    img_size = 224
+n_epochs = 100
+lr = 0.1
+
+
+config = load_configuration(filename=f'{model_type}-{dataset}.json')
+batch_size = config['batch_size']
+img_size = config['img_size']
+n_channels = config['n_channels']
 
 if is_debug:
     batch_size = 64
@@ -32,6 +41,7 @@ common_trans = [
     transforms.ToTensor(),
     transforms.Normalize(mean=[0.6], std=[0.2])
 ]
+
 transform_train = transforms.Compose(common_trans)
 transform_val = transforms.Compose(common_trans)
 
@@ -40,21 +50,37 @@ torch.cuda.set_device(0)
 
 # Generate DataLoaders
 print('Creating DataLoaders')
-data_path = '/home/alberto/Desktop/repos/random/xray-bayesian-dl/data/x_ray_data'
-# data_path = '/home/alberto/Desktop/repos/bayesian-deep-learning/bayesian-dl-xray/data/x_ray_data'
-train_set = XRayBinary(path=data_path, img_size=img_size, is_train=True, transform=transform_train, is_debug=is_debug)
-val_set = XRayBinary(path=data_path, img_size=img_size, is_train=False, transform=transform_val, is_debug=is_debug)
+if dataset == 'x_ray_binary':
+    data_path = '/home/alberto/Desktop/repos/random/xray-bayesian-dl/data/x_ray_data'
+    # data_path = '/home/alberto/Desktop/repos/bayesian-deep-learning/bayesian-dl-xray/data/x_ray_data'
+    train_set = XRayBinary(path=data_path, img_size=img_size, is_train=True, transform=transform_train, is_debug=is_debug)
+    val_set = XRayBinary(path=data_path, img_size=img_size, is_train=False, transform=transform_val, is_debug=is_debug)
+    num_classes = 2
+
+elif dataset == 'cancer':
+    data_path = '/home/alberto/Desktop/datasets/histopathologic-cancer-detection/'
+    train_set = HistoPathologicCancer(path=data_path, img_size=img_size, is_train=True, transform=transform_train,
+                                      is_debug=is_debug)
+    val_set = HistoPathologicCancer(path=data_path, img_size=img_size, is_train=False, transform=transform_val,
+                                    is_debug=is_debug)
+    num_classes = 2
+
+else:
+    raise Exception
 
 train_loader = torch.utils.data.DataLoader(train_set, batch_size=batch_size, shuffle=True, num_workers=4)
 val_loader = torch.utils.data.DataLoader(val_set, batch_size=batch_size, shuffle=False, num_workers=4)
-num_classes = 2
 
 # create Feature Extractor
-if feature_extractor_type == 'densenet':
+if model_type == 'densenet':
     feature_extractor = DenseNetFeatureExtractor(block_config=(6, 6, 6), n_channels=1, num_classes=num_classes).cuda()
     num_features = feature_extractor.classifier.in_features
-elif feature_extractor_type == 'resnet':
-    feature_extractor = ResNetFeatureExtractor(num_classes=2).cuda()
+elif model_type == 'resnet':
+    feature_extractor = ResNetBWFeatureExtractor(num_classes=2).cuda()
+    num_features = feature_extractor.fc.in_features
+
+elif model_type == 'resnet18':
+    feature_extractor = ResNet18FeatureExtractor(num_classes=2, pretrained=True).cuda()
     num_features = feature_extractor.fc.in_features
 
 # define model
