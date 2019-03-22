@@ -4,11 +4,11 @@ from torch import nn
 from torchvision.models.resnet import BasicBlock
 
 
-class ResNet(nn.Module):
+class ResNetBW(nn.Module):
 
     def __init__(self, block=BasicBlock, layers=[2, 2, 2, 2], num_classes=1000):
         self.inplanes = 64
-        super(ResNet, self).__init__()
+        super(ResNetBW, self).__init__()
         self.conv1 = nn.Conv2d(1, 64, kernel_size=7, stride=2, padding=3,
                                bias=False)
         self.bn1 = nn.BatchNorm2d(64)
@@ -64,7 +64,10 @@ class ResNet(nn.Module):
         return x
 
 
-class ResNetFeatureExtractor(ResNet):
+class ResNetBWFeatureExtractor(ResNetBW):
+    '''
+    Resnet Modified to use a single Black&White channel
+    '''
     def forward(self, x):
         x = self.conv1(x)
         x = self.bn1(x)
