@@ -3,29 +3,30 @@ from torch.optim import SGD
 from torch.optim.lr_scheduler import MultiStepLR
 from torchvision.models import resnet18
 
+from deep_GP.configuration.loader import load_configuration
+from deep_GP.dataset.histopathologic_cancer_dataset import HistoPathologicCancer
 from deep_GP.dataset.x_ray_binary import XRayBinary
 import torch
 import torchvision.transforms as transforms
 
 from deep_GP.models.resnet34 import ResNet
 
-# feature_extractor_type = 'densenet'
-feature_extractor_type = 'resnet18'
+# model_type = 'densenet'
+model_type = 'resnet18'
+
+# dataset = 'x_ray_binary'
+dataset = 'cancer'
+
 is_debug = False
 
 n_epochs = 100
 lr = 0.1
 
-if feature_extractor_type == 'resnet':
-    batch_size = 256-16
-    img_size = 224
-    n_channels = 1
-elif feature_extractor_type == 'resnet18':
-    batch_size = 128
-    img_size = 224
-    n_channels = 3
-else:
-    raise Exception
+
+config = load_configuration(filename=f'{model_type}-{dataset}.json')
+batch_size = config['batch_size']
+img_size = config['img_size']
+n_channels = config['n_channels']
 
 if is_debug:
     batch_size = 64
@@ -44,22 +45,32 @@ torch.cuda.set_device(0)
 
 # Generate DataLoaders
 print('Creating DataLoaders')
-# data_path = '/home/alberto/Desktop/repos/random/xray-bayesian-dl/data/x_ray_data'
-data_path = '/home/alberto/Desktop/repos/bayesian-deep-learning/bayesian-dl-xray/data/x_ray_data'
-train_set = XRayBinary(path=data_path, img_size=img_size, is_train=True, transform=transform_train,
-                       n_channels=n_channels, is_debug=is_debug)
-val_set = XRayBinary(path=data_path, img_size=img_size, is_train=False, transform=transform_val,
-                     n_channels=n_channels, is_debug=is_debug)
+if dataset == 'x_ray_binary':
+    # data_path = '/home/alberto/Desktop/repos/random/xray-bayesian-dl/data/x_ray_data'
+    data_path = '/home/alberto/Desktop/repos/bayesian-deep-learning/bayesian-dl-xray/data/x_ray_data'
+    train_set = XRayBinary(path=data_path, img_size=img_size, is_train=True, transform=transform_train,
+                           n_channels=n_channels, is_debug=is_debug)
+    val_set = XRayBinary(path=data_path, img_size=img_size, is_train=False, transform=transform_val,
+                         n_channels=n_channels, is_debug=is_debug)
+    num_classes = 2
+
+elif dataset == 'cancer':
+    data_path = '/home/alberto/Desktop/datasets/histopathologic-cancer-detection/'
+    train_set = HistoPathologicCancer(path=data_path, img_size=img_size, is_train=True, transform=transform_train,
+                                      is_debug=is_debug)
+    val_set = HistoPathologicCancer(path=data_path, img_size=img_size, is_train=False, transform=transform_val,
+                                    is_debug=is_debug)
+    num_classes = 2
 
 train_loader = torch.utils.data.DataLoader(train_set, batch_size=batch_size, shuffle=True, num_workers=4)
 val_loader = torch.utils.data.DataLoader(val_set, batch_size=batch_size, shuffle=False, num_workers=4)
-num_classes = 2
+
 
 print('Creating Model')
 # create Feature Extractor
-if feature_extractor_type == 'resnet':
+if model_type == 'resnet':
     model = ResNet(num_classes=num_classes).cuda()
-if feature_extractor_type == 'resnet18':
+if model_type == 'resnet18':
     model = resnet18(pretrained=True).cuda()
 
 # Define Training and Testing
@@ -107,4 +118,4 @@ for epoch in range(1, n_epochs + 1):
     validation()
 
     state_dict = model.state_dict()
-    torch.save({'model': state_dict}, 'x_ray_binary_checkpoint.dat')
+    torch.save({'model': state_dict}, f'{model_type}-{dataset}.dat')
