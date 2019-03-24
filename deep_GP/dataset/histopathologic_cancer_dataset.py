@@ -12,14 +12,23 @@ from PIL import Image
 class HistoPathologicCancer(Dataset):
     """Histo-Pathologic Cancer Dataset with binary labeling: Finding/No-Finding"""
 
-    def __init__(self, path=None, img_size=64, is_train=False, transform=None, n_channels=3, is_debug=False):
+    def __init__(self, path=None, img_size=64, dataset_type='train', transform=None, n_channels=3, is_debug=False):
         self.path = path if path is not None \
             else '/home/alberto/Desktop/datasets/histopathologic-cancer-detection/'
         self.img_size = img_size
-        self.is_train = is_train
+        self.dataset_type = dataset_type
+        if self.dataset_type not in ['train', 'validation', 'test']:
+            raise RuntimeError
+
+        if self.dataset_type in ['train', 'validation']:
+            self.is_training = True
+        else:
+            self.is_training = False
+
         self.n_channels = n_channels
         self.is_debug = is_debug
 
+        # define transformation
         self.transform = transform
         if self.transform is None:
             self.transform = transforms.Compose([
@@ -28,28 +37,40 @@ class HistoPathologicCancer(Dataset):
 
         self.transform_target = transforms.ToTensor()
 
-        self.df_label_img = pd.read_csv(os.path.join(self.path, 'train_labels.csv'))
+        if self.is_training:
+            self.df_data = pd.read_csv(os.path.join(self.path, 'train_labels.csv'))
 
-        if is_debug:
-            self.df_label_img = self.df_label_img[:512]
+            if is_debug:
+                self.df_data = self.df_data[:512]
 
-        # create training/validation set
-        train, validation = train_test_split(self.df_label_img, random_state=42, shuffle=True, test_size=0.2)
-        if self.is_train:
-            self.df_label_img = train
+            # create training/validation set
+            train, validation = train_test_split(self.df_data, random_state=42, shuffle=True, test_size=0.2)
+            if self.dataset_type == 'train':
+                self.df_data = train
+            elif self.dataset_type == 'validation':
+                self.df_data = validation
         else:
-            self.df_label_img = validation
+            self.df_data = os.listdir(os.path.join(self.path, 'test'))
+            if is_debug:
+                self.df_data = self.df_data[:512]
 
     def __len__(self):
-        return len(self.df_label_img)
+        return len(self.df_data)
 
     def __getitem__(self, idx):
-        item = self.df_label_img.iloc[idx]
+        if self.is_training:
+            return self._get_img_and_label(idx)
+        else:
+            item = self.df_data[idx]
+            img = self.get_rgb_image_from_file(os.path.join(self.path, 'test', item))
+            img = self.transform(img)
+            return img, item[:-4]
 
+    def _get_img_and_label(self, idx):
+        item = self.df_data.iloc[idx]
         img = self.get_rgb_image_from_file(os.path.join(self.path, 'train', ''.join([item['id'],
                                                                                      '.tif'])))
         img = self.transform(img)
-
         label = np.array(item['label'])
         label = torch.from_numpy(label)
         return img, label
