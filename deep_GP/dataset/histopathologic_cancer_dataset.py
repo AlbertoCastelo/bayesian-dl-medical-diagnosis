@@ -1,6 +1,6 @@
 import os
 from glob import glob
-
+from sklearn.model_selection import train_test_split
 import torch
 from torch.utils.data import Dataset
 import pandas as pd
@@ -32,6 +32,13 @@ class HistoPathologicCancer(Dataset):
 
         if is_debug:
             self.df_label_img = self.df_label_img[:512]
+
+        # create training/validation set
+        train, validation = train_test_split(self.df_label_img, random_state=42, shuffle=True, test_size=0.2)
+        if self.is_train:
+            self.df_label_img = train
+        else:
+            self.df_label_img = validation
 
     def __len__(self):
         return len(self.df_label_img)
