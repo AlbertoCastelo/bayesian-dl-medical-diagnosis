@@ -56,9 +56,9 @@ if dataset == 'x_ray_binary':
 
 elif dataset == 'cancer':
     data_path = '/home/alberto/Desktop/datasets/histopathologic-cancer-detection/'
-    train_set = HistoPathologicCancer(path=data_path, img_size=img_size, is_train=True, transform=transform_train,
+    train_set = HistoPathologicCancer(path=data_path, img_size=img_size, dataset_type='train', transform=transform_train,
                                       is_debug=is_debug)
-    val_set = HistoPathologicCancer(path=data_path, img_size=img_size, is_train=False, transform=transform_val,
+    val_set = HistoPathologicCancer(path=data_path, img_size=img_size, dataset_type='validation', transform=transform_val,
                                     is_debug=is_debug)
     num_classes = 2
 
