@@ -1,3 +1,5 @@
+from gpytorch import settings
+
 from deep_GP.configuration.loader import load_configuration
 from deep_GP.dataset.histopathologic_cancer_dataset import HistoPathologicCancer
 import torch
@@ -19,10 +21,16 @@ dataset = 'cancer'
 
 is_debug = False
 
+
 config = load_configuration(filename=f'bayes-{model_type}-{dataset}.json', path='./../deep_GP/configuration')
 batch_size = 896
 img_size = config['img_size']
 n_channels = config['n_channels']
+num_likelihood_samples = config['num_likelihood_samples']
+
+# n of samples used
+settings.num_likelihood_samples._set_value(num_likelihood_samples)
+
 
 if is_debug:
     batch_size = 64
