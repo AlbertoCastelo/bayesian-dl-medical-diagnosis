@@ -1,3 +1,4 @@
+from gpytorch import settings
 from torch.optim import SGD
 from torch.optim.lr_scheduler import MultiStepLR
 
@@ -31,6 +32,10 @@ config = load_configuration(filename=f'bayes-{model_type}-{dataset}.json')
 batch_size = config['batch_size']
 img_size = config['img_size']
 n_channels = config['n_channels']
+num_likelihood_samples = config['num_likelihood_samples']
+
+# n of samples used
+settings.num_likelihood_samples._set_value(num_likelihood_samples)
 
 if is_debug:
     batch_size = 64
@@ -114,6 +119,7 @@ def validation():
     accuracy = 100. * correct / float(len(val_loader.dataset))
     print(f'Test set: Accuracy: {correct}/{len(val_loader.dataset)} ({accuracy}%)')
     return accuracy
+
 
 def train(epoch):
     model.train()
