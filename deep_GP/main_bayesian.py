@@ -105,19 +105,19 @@ optimizer = SGD([
 scheduler = MultiStepLR(optimizer, milestones=[0.5 * n_epochs, 0.75 * n_epochs], gamma=0.1)
 
 
-def validation():
+def validation(data_loader, dataset_type='Validation'):
     model.eval()
     likelihood.eval()
 
     correct = 0
-    for data, target in val_loader:
+    for data, target in data_loader:
         data, target = data.cuda(), target.cuda()
         with torch.no_grad():
             output = likelihood(model(data))
             pred = output.probs.argmax(1)
             correct += pred.eq(target.view_as(pred)).cpu().sum()
     accuracy = 100. * correct / float(len(val_loader.dataset))
-    print(f'Test set: Accuracy: {correct}/{len(val_loader.dataset)} ({accuracy}%)')
+    print(f'{dataset_type} set: Accuracy: {correct}/{len(val_loader.dataset)} ({accuracy}%)')
     return accuracy
 
 
@@ -147,7 +147,8 @@ for epoch in range(1, n_epochs + 1):
 
     with gpytorch.settings.use_toeplitz(False), gpytorch.settings.max_preconditioner_size(0):
         train(epoch)
-        accuracy_val = validation()
+        validation(data_loader=train_loader, dataset_type='Training')
+        accuracy_val = validation(data_loader=val_loader, dataset_type='Validation')
         if accuracy_val > accuracy_val_top:
             print('Saving Model')
             state_dict = model.state_dict()
