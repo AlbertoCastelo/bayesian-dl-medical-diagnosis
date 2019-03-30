@@ -116,8 +116,8 @@ def validation(data_loader, dataset_type='Validation'):
             output = likelihood(model(data))
             pred = output.probs.argmax(1)
             correct += pred.eq(target.view_as(pred)).cpu().sum()
-    accuracy = 100. * correct / float(len(val_loader.dataset))
-    print(f'{dataset_type} set: Accuracy: {correct}/{len(val_loader.dataset)} ({accuracy}%)')
+    accuracy = 100. * correct / float(len(data_loader.dataset))
+    print(f'{dataset_type} set: Accuracy: {correct}/{len(data_loader.dataset)} ({accuracy}%)')
     return accuracy
 
 
