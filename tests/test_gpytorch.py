@@ -5,7 +5,7 @@ import torchvision.datasets as dset
 import torchvision.transforms as transforms
 import gpytorch
 
-from deep_GP.models.deep_kernel_model import DKLModel, DenseNetFeatureExtractor
+from deep_gp.models.deep_kernel_model import DKLModel, DenseNetFeatureExtractor
 
 normalize = transforms.Normalize(mean=[0.5071, 0.4867, 0.4408], std=[0.2675, 0.2565, 0.2761])
 aug_trans = [transforms.RandomCrop(32, padding=4), transforms.RandomHorizontalFlip()]
