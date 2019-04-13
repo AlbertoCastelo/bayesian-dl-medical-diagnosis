@@ -13,6 +13,8 @@ from deep_gp.models.resnet18 import ResNet18FeatureExtractor
 from deep_gp.models.resnet_bw import ResNetBWFeatureExtractor
 
 # model_type = 'densenet'
+from deep_gp.models.softmax_likelihood import SoftmaxLikelihood
+
 model_type = 'resnet18'
 
 # dataset = 'x_ray_binary'
@@ -22,7 +24,7 @@ is_debug = False
 
 
 config = load_configuration(filename=f'bayes-{model_type}-{dataset}.json', path='./../deep_gp/configuration')
-batch_size = 896
+batch_size = 40
 img_size = config['img_size']
 n_channels = config['n_channels']
 num_likelihood_samples = config['num_likelihood_samples']
@@ -75,7 +77,7 @@ elif model_type == 'resnet18':
 
 # define model
 model = DKLModel(feature_extractor, num_dim=num_features).cuda()
-likelihood = gpytorch.likelihoods.SoftmaxLikelihood(num_features=model.num_dim, n_classes=num_classes).cuda()
+likelihood = SoftmaxLikelihood(num_features=model.num_dim, n_classes=num_classes).cuda()
 
 
 # load model
