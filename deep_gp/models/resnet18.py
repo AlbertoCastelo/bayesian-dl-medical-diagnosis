@@ -1,6 +1,9 @@
+from torch import nn
 from torchvision.models import ResNet
 from torchvision.models.resnet import BasicBlock
 import torch.utils.model_zoo as model_zoo
+import torch
+
 
 model_urls = {
     'resnet18': 'https://download.pytorch.org/models/resnet18-5c106cde.pth',
@@ -35,4 +38,38 @@ class ResNet18FeatureExtractor(ResNet):
         x = self.layer4(x)
         x = self.avgpool(x)
         x = x.view(x.size(0), -1)
+        return x
+
+
+class ResNet18FeatureExtractorBernoulli(ResNet):
+    '''
+    Feature Extractor from ResNet 18
+    '''
+    def __init__(self, num_classes=1, pretrained=True):
+        self.num_classes = num_classes
+        self.pretrained = pretrained
+        super(ResNet18FeatureExtractorBernoulli, self).__init__(block=BasicBlock, layers=[2, 2, 2, 2],
+                                                                num_classes=num_classes)
+
+        self.fc = nn.Linear(512 * BasicBlock.expansion, num_classes)
+
+        if pretrained:
+            state_dict = model_zoo.load_url(model_urls['resnet18'])
+            state_dict['fc.bias'] = torch.rand(num_classes)
+            state_dict['fc.weight'] = torch.rand((num_classes, 512))
+            self.load_state_dict(state_dict)
+
+    def forward(self, x):
+        x = self.conv1(x)
+        x = self.bn1(x)
+        x = self.relu(x)
+        x = self.maxpool(x)
+
+        x = self.layer1(x)
+        x = self.layer2(x)
+        x = self.layer3(x)
+        x = self.layer4(x)
+        x = self.avgpool(x)
+        x = x.view(x.size(0), -1)
+        x = self.fc(x)
         return x
