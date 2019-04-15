@@ -43,7 +43,7 @@ class SoftmaxLikelihood(Likelihood):
         softmax = torch.nn.functional.softmax(mixed_fs.t(), 1).view(n_data, n_samples, self.n_classes)
 
         if self.is_detail_eval:
-            return Categorical(probs=softmax.mean(1)), softmax
+            return Categorical(probs=softmax.mean(1)), softmax, mixed_fs, samples
 
         return Categorical(probs=softmax.mean(1))
 
