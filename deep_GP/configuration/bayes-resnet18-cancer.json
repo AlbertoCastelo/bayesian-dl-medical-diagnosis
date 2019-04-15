@@ -1,5 +1,0 @@
-{"img_size": 210,
-"n_channels": 3,
-"batch_size":  240,
-"num_likelihood_samples": 100
-}

@@ -1,0 +1,4 @@
+{"img_size": 224,
+"n_channels": 1,
+"batch_size":  240
+}
