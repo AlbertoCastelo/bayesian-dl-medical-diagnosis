@@ -37,36 +37,28 @@ class HistoPathologicCancer(Dataset):
 
         self.transform_target = transforms.ToTensor()
 
-        if self.is_training:
-            self.df_data = pd.read_csv(os.path.join(self.path, 'train_labels.csv'))
+        self.df_data = pd.read_csv(os.path.join(self.path, 'train_labels.csv'))
 
-            if is_debug:
-                self.df_data = self.df_data[:512]
+        if is_debug:
+            self.df_data = self.df_data[:512]
 
-            # create training/validation set
-            train, validation = train_test_split(self.df_data, random_state=42, shuffle=True, test_size=0.2)
-            if self.dataset_type == 'train':
-                self.df_data = train
-            elif self.dataset_type == 'validation':
-                self.df_data = validation
+        # create training/validation set
+        train, validation_and_test = train_test_split(self.df_data, random_state=42, shuffle=True, test_size=0.4)
+        validation, test = train_test_split(self.df_data, random_state=42, shuffle=True, test_size=0.5)
+
+        if self.dataset_type == 'train':
+            self.df_data = train
+        elif self.dataset_type == 'validation':
+            self.df_data = validation
+        elif self.dataset_type == 'test':
+            self.df_data = test
         else:
-            self.df_data = os.listdir(os.path.join(self.path, 'test'))
-            if is_debug:
-                self.df_data = self.df_data[:512]
+            raise ValueError
 
     def __len__(self):
         return len(self.df_data)
 
     def __getitem__(self, idx):
-        if self.is_training:
-            return self._get_img_and_label(idx)
-        else:
-            item = self.df_data[idx]
-            img = self.get_rgb_image_from_file(os.path.join(self.path, 'test', item))
-            img = self.transform(img)
-            return img, item[:-4]
-
-    def _get_img_and_label(self, idx):
         item = self.df_data.iloc[idx]
         img = self.get_rgb_image_from_file(os.path.join(self.path, 'train', ''.join([item['id'],
                                                                                      '.tif'])))
