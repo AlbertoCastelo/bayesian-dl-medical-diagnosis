@@ -2,7 +2,7 @@ import time
 
 import math
 from torch.autograd import Variable
-from torch.optim import SGD
+from torch.optim import SGD, Adam
 from torch.optim.lr_scheduler import MultiStepLR
 
 from BayesianModels.Bayesian3Conv3FC import BBB3Conv3FC
@@ -26,10 +26,10 @@ is_resume = False
 
 dataset = 'cancer'
 
-is_debug = True
+is_debug = False
 
 n_epochs = 100
-lr = 0.1
+lr = 0.001
 
 
 config = load_configuration(filename=f'bbb-{model_type}-{dataset}.json')
@@ -38,7 +38,7 @@ img_size = config['img_size']
 n_channels = config['n_channels']
 n_samples = config['n_samples']
 beta_type = config['beta_type']
-
+weight_decay = config['weight_decay']
 
 if is_debug:
     batch_size = 64
@@ -110,11 +110,10 @@ vi = GaussianVariationalInference(torch.nn.CrossEntropyLoss())
 
 
 # Define Training and Testing
-optimizer = SGD([
-    {'params': model.parameters()}
-], lr=lr, momentum=0.9, nesterov=True, weight_decay=0)
-scheduler = MultiStepLR(optimizer, milestones=[0.5 * n_epochs, 0.75 * n_epochs], gamma=0.1)
-
+# optimizer = SGD([
+#     {'params': model.parameters()}
+# ], lr=lr, momentum=0.9, nesterov=True, weight_decay=0)
+# scheduler = MultiStepLR(optimizer, milestones=[0.5 * n_epochs, 0.75 * n_epochs], gamma=0.1)
 
 def validation(data_loader, dataset_type='Validation'):
     model.eval()
@@ -169,6 +168,7 @@ def train(epoch):
     correct = 0
     total = 0
     m = math.ceil(len(train_set) / batch_size)
+    optimizer = Adam(model.parameters(), lr=lr, weight_decay=weight_decay)
 
     print(f'Epoch: {epoch}')
     train_loss = 0.
@@ -218,7 +218,7 @@ validation_acc = []
 time_epoch = []
 for epoch in range(1, n_epochs + 1):
     start_time = time.time()
-    scheduler.step()
+    # scheduler.step()
 
     train_acc.append(train(epoch))
     # train_acc.append(validation(data_loader=train_loader, dataset_type='Training'))

@@ -1,6 +1,7 @@
 {"img_size": 32,
 "n_channels": 3,
-"batch_size":  240,
+"batch_size":  256,
 "n_samples": 10,
-"beta_type": "Blundell"
+"beta_type": "Blundell",
+"weight_decay": 0.0005
 }
