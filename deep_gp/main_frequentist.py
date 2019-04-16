@@ -2,6 +2,7 @@ from torch.nn import CrossEntropyLoss
 from torch.optim import SGD
 from torch.optim.lr_scheduler import MultiStepLR
 from torchvision.models import resnet18
+import pandas as pd
 
 from deep_gp.configuration.loader import load_configuration
 from deep_gp.dataset.histopathologic_cancer_dataset import HistoPathologicCancer
@@ -17,9 +18,9 @@ model_type = 'resnet18'
 # dataset = 'x_ray_binary'
 dataset = 'cancer'
 
-is_debug = False
+is_debug = True
 
-n_epochs = 100
+n_epochs = 3
 lr = 0.1
 
 
@@ -81,18 +82,21 @@ scheduler = MultiStepLR(optimizer, milestones=[0.5 * n_epochs, 0.75 * n_epochs],
 criterion = CrossEntropyLoss()
 
 
-def validation():
+def validation(data_loader, dataset_type='Validation'):
 
     correct = 0
-    for data, target in val_loader:
+    for data, target in data_loader:
         data, target = data.cuda(), target.cuda()
         with torch.no_grad():
             output = model(data)
             _, predicted = torch.max(output.data, 1)
-            correct += (predicted == target).sum().item()
-    print('Test set: Accuracy: {}/{} ({}%)'.format(
-        correct, len(val_loader.dataset), 100. * correct / float(len(val_loader.dataset))
-    ))
+            correct += float((predicted == target).sum().item())
+    accuracy = round(100. * correct / float(len(data_loader.dataset)), 3)
+    print(f'{dataset_type} set: Accuracy: {correct}/{len(data_loader.dataset)} ({accuracy}%)')
+    return accuracy
+    # print('Test set: Accuracy: {}/{} ({}%)'.format(
+    #     correct, len(val_loader.dataset), 100. * correct / float(len(data_loader.dataset))
+    # ))
 
 
 def train(epoch):
@@ -112,10 +116,23 @@ def train(epoch):
 
 # Train the Model
 print('Training Model')
+accuracy_val_top = 0.0
+train_acc = []
+validation_acc = []
 for epoch in range(1, n_epochs + 1):
     scheduler.step()
     train(epoch)
-    validation()
+    train_acc.append(validation(data_loader=train_loader, dataset_type='Training'))
 
-    state_dict = model.state_dict()
-    torch.save({'model': state_dict}, f'frequentist-{model_type}-{dataset}.dat')
+    validation_acc_epoch = validation(data_loader=val_loader, dataset_type='Validation')
+    validation_acc.append(validation_acc_epoch)
+
+    if validation_acc_epoch > accuracy_val_top:
+        print('Saving Model')
+        state_dict = model.state_dict()
+        torch.save({'model': state_dict}, f'frequentist-{model_type}-{dataset}.dat')
+
+df_metric_training = pd.DataFrame({'epoch': list(range(1, len(train_acc) + 1)),
+                                   'train_acc': train_acc,
+                                   'validation_acc': validation_acc})
+df_metric_training.to_csv(f'./frequentist-{model_type}-{dataset}.csv', index=False)
