@@ -36,7 +36,8 @@ if is_debug:
 common_trans = [
     transforms.Resize((img_size, img_size)),
     transforms.ToTensor(),
-    transforms.Normalize(mean=[0.6]*n_channels, std=[0.2]*n_channels)
+    transforms.Normalize(mean=[0.6976, 0.5404, 0.6897],
+                         std=[0.2433, 0.2839, 0.2199])
 ]
 transform_train = transforms.Compose(common_trans)
 transform_val = transforms.Compose(common_trans)
