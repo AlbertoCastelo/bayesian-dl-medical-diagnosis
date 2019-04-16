@@ -8,7 +8,7 @@ from deep_gp.dataset.x_ray_binary import XRayBinary
 import torch
 import torchvision.transforms as transforms
 import gpytorch
-
+import pandas as pd
 
 # parameters
 from deep_gp.models.densenet import DenseNetFeatureExtractor
@@ -115,8 +115,8 @@ def validation(data_loader, dataset_type='Validation'):
         with torch.no_grad():
             output = likelihood(model(data))
             pred = output.probs.argmax(1)
-            correct += pred.eq(target.view_as(pred)).cpu().sum()
-    accuracy = 100. * correct / float(len(data_loader.dataset))
+            correct += float(pred.eq(target.view_as(pred)).cpu().sum())
+    accuracy = round(100. * correct / float(len(data_loader.dataset)), 3)
     print(f'{dataset_type} set: Accuracy: {correct}/{len(data_loader.dataset)} ({accuracy}%)')
     return accuracy
 
@@ -142,15 +142,25 @@ def train(epoch):
 # Train the Model
 print('Training Model')
 accuracy_val_top = 0
+train_acc = []
+validation_acc = []
 for epoch in range(1, n_epochs + 1):
     scheduler.step()
 
     with gpytorch.settings.use_toeplitz(False), gpytorch.settings.max_preconditioner_size(0):
         train(epoch)
-        validation(data_loader=train_loader, dataset_type='Training')
-        accuracy_val = validation(data_loader=val_loader, dataset_type='Validation')
-        if accuracy_val > accuracy_val_top:
+        train_acc.append(validation(data_loader=train_loader, dataset_type='Training'))
+
+        validation_acc_epoch = validation(data_loader=val_loader, dataset_type='Validation')
+        validation_acc.append(validation_acc_epoch)
+
+        if validation_acc_epoch > accuracy_val_top:
             print('Saving Model')
             state_dict = model.state_dict()
             likelihood_state_dict = likelihood.state_dict()
             torch.save({'model': state_dict, 'likelihood': likelihood_state_dict}, f'bayes-{model_type}-{dataset}.dat')
+
+df_metric_training = pd.DataFrame({'epoch': list(range(1, len(train_acc) + 1)),
+                                   'train_acc': train_acc,
+                                   'validation_acc': validation_acc})
+df_metric_training.to_csv(f'./bayes-{model_type}-{dataset}.csv', index=False)
