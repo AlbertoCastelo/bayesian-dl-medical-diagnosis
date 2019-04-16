@@ -1,3 +1,5 @@
+import time
+
 from torch.nn import CrossEntropyLoss
 from torch.optim import SGD
 from torch.optim.lr_scheduler import MultiStepLR
@@ -120,7 +122,11 @@ print('Training Model')
 accuracy_val_top = 0.0
 train_acc = []
 validation_acc = []
+time_epoch = []
+
 for epoch in range(1, n_epochs + 1):
+    start_time = time.time()
+
     scheduler.step()
     train(epoch)
     train_acc.append(validation(data_loader=train_loader, dataset_type='Training'))
@@ -133,7 +139,12 @@ for epoch in range(1, n_epochs + 1):
         state_dict = model.state_dict()
         torch.save({'model': state_dict}, f'frequentist-{model_type}-{dataset}.dat')
 
-df_metric_training = pd.DataFrame({'epoch': list(range(1, len(train_acc) + 1)),
-                                   'train_acc': train_acc,
-                                   'validation_acc': validation_acc})
-df_metric_training.to_csv(f'./frequentist-{model_type}-{dataset}.csv', index=False)
+    epoch_time = time.time() - start_time
+    time_epoch.append(epoch_time)
+    print(f'Time at epoch: {epoch_time}')
+
+    df_metric_training = pd.DataFrame({'epoch': list(range(1, len(train_acc) + 1)),
+                                       'train_acc': train_acc,
+                                       'validation_acc': validation_acc,
+                                       'time': time_epoch})
+    df_metric_training.to_csv(f'./frequentist-{model_type}-{dataset}.csv', index=False)

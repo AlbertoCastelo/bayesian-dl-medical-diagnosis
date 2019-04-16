@@ -231,9 +231,12 @@ for epoch in range(1, n_epochs + 1):
         state_dict = model.state_dict()
         torch.save({'model': state_dict}, f'bbb-{model_type}-{dataset}.dat')
 
-    time_epoch.append(time.time() - start_time)
+    epoch_time = time.time() - start_time
+    time_epoch.append(epoch_time)
+    print(f'Time at epoch: {epoch_time}')
 
-df_metric_training = pd.DataFrame({'epoch': list(range(1, len(train_acc) + 1)),
-                                   'train_acc': train_acc,
-                                   'validation_acc': validation_acc})
-df_metric_training.to_csv(f'./bayes-{model_type}-{dataset}.csv', index=False)
+    df_metric_training = pd.DataFrame({'epoch': list(range(1, len(train_acc) + 1)),
+                                       'train_acc': train_acc,
+                                       'validation_acc': validation_acc,
+                                       'time': time_epoch})
+    df_metric_training.to_csv(f'./bayes-{model_type}-{dataset}.csv', index=False)
