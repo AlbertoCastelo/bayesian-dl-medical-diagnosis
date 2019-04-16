@@ -1,0 +1,6 @@
+{"img_size": 32,
+"n_channels": 3,
+"batch_size":  240,
+"n_samples": 10,
+"beta_type": "Blundell"
+}
