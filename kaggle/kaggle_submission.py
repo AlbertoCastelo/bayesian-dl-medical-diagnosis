@@ -1,9 +1,8 @@
 from deep_gp.configuration.loader import load_configuration
-from deep_gp.dataset.histopathologic_cancer_dataset import HistoPathologicCancer
+from dataset.histopathologic_cancer_dataset import HistoPathologicCancer
 from gpytorch import settings
 import torch
 import torchvision.transforms as transforms
-import gpytorch
 import pandas as pd
 
 # parameters

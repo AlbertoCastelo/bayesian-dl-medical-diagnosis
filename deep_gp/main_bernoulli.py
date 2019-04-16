@@ -3,8 +3,8 @@ from torch.optim import SGD
 from torch.optim.lr_scheduler import MultiStepLR
 
 from deep_gp.configuration.loader import load_configuration
-from deep_gp.dataset.histopathologic_cancer_dataset import HistoPathologicCancer
-from deep_gp.dataset.x_ray_binary import XRayBinary
+from dataset.histopathologic_cancer_dataset import HistoPathologicCancer
+from dataset.x_ray_binary import XRayBinary
 import torch
 import torchvision.transforms as transforms
 import gpytorch
@@ -13,7 +13,7 @@ import gpytorch
 # parameters
 from deep_gp.models.densenet import DenseNetFeatureExtractor
 from deep_gp.models.deep_kernel_model import DKLModel
-from deep_gp.models.resnet18 import ResNet18FeatureExtractor, ResNet18FeatureExtractorBernoulli
+from deep_gp.models.resnet18 import ResNet18FeatureExtractorBernoulli
 from deep_gp.models.resnet_bw import ResNetBWFeatureExtractor
 
 # model_type = 'densenet'
