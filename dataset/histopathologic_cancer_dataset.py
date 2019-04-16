@@ -44,7 +44,7 @@ class HistoPathologicCancer(Dataset):
 
         # create training/validation set
         train, validation_and_test = train_test_split(self.df_data, random_state=42, shuffle=True, test_size=0.4)
-        validation, test = train_test_split(self.df_data, random_state=42, shuffle=True, test_size=0.5)
+        validation, test = train_test_split(validation_and_test, random_state=42, shuffle=True, test_size=0.5)
 
         if self.dataset_type == 'train':
             self.df_data = train
