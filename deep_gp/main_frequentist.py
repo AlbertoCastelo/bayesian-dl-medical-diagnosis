@@ -20,9 +20,9 @@ model_type = 'resnet18'
 # dataset = 'x_ray_binary'
 dataset = 'cancer'
 
-is_debug = True
+is_debug = False
 
-n_epochs = 3
+n_epochs = 100
 lr = 0.1
 
 
