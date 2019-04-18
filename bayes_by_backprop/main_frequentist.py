@@ -21,9 +21,9 @@ is_resume = False
 
 dataset = 'cancer'
 
-is_debug = True
+is_debug = False
 
-n_epochs = 10
+n_epochs = 100
 lr = 0.001
 
 
