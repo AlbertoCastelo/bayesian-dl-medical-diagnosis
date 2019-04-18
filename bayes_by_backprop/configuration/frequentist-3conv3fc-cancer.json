@@ -1,0 +1,5 @@
+{"img_size": 32,
+"n_channels": 3,
+"batch_size":  3072,
+"weight_decay": 0.0005
+}

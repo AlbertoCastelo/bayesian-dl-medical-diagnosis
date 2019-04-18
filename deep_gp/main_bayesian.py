@@ -1,3 +1,5 @@
+import time
+
 from gpytorch import settings
 from torch.optim import SGD
 from torch.optim.lr_scheduler import MultiStepLR
@@ -145,7 +147,9 @@ print('Training Model')
 accuracy_val_top = 0
 train_acc = []
 validation_acc = []
+time_epoch = []
 for epoch in range(1, n_epochs + 1):
+    start_time = time.time()
     scheduler.step()
 
     with gpytorch.settings.use_toeplitz(False), gpytorch.settings.max_preconditioner_size(0):
@@ -161,7 +165,11 @@ for epoch in range(1, n_epochs + 1):
             likelihood_state_dict = likelihood.state_dict()
             torch.save({'model': state_dict, 'likelihood': likelihood_state_dict}, f'bayes-{model_type}-{dataset}.dat')
 
-df_metric_training = pd.DataFrame({'epoch': list(range(1, len(train_acc) + 1)),
-                                   'train_acc': train_acc,
-                                   'validation_acc': validation_acc})
-df_metric_training.to_csv(f'./bayes-{model_type}-{dataset}.csv', index=False)
+    epoch_time = time.time() - start_time
+    time_epoch.append(epoch_time)
+    print(f'Time at epoch: {epoch_time}')
+    df_metric_training = pd.DataFrame({'epoch': list(range(1, len(train_acc) + 1)),
+                                       'train_acc': train_acc,
+                                       'validation_acc': validation_acc,
+                                       'time': time_epoch})
+    df_metric_training.to_csv(f'./bayes-{model_type}-{dataset}.csv', index=False)
