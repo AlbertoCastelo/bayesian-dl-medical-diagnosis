@@ -197,6 +197,7 @@ for epoch in range(1, n_epochs + 1):
         print('Saving Model')
         state_dict = model.state_dict()
         torch.save({'model': state_dict}, f'frequentist-{model_type}-{dataset}.dat')
+        accuracy_val_top = validation_acc_epoch
 
     epoch_time = time.time() - start_time
     time_epoch.append(epoch_time)

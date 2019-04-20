@@ -164,6 +164,7 @@ for epoch in range(1, n_epochs + 1):
             state_dict = model.state_dict()
             likelihood_state_dict = likelihood.state_dict()
             torch.save({'model': state_dict, 'likelihood': likelihood_state_dict}, f'bayes-{model_type}-{dataset}.dat')
+            accuracy_val_top = validation_acc_epoch
 
     epoch_time = time.time() - start_time
     time_epoch.append(epoch_time)
