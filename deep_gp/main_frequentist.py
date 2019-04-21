@@ -1,10 +1,12 @@
 import time
 
+from torch import nn
 from torch.nn import CrossEntropyLoss
 from torch.optim import SGD
 from torch.optim.lr_scheduler import MultiStepLR
 from torchvision.models import resnet18
 import pandas as pd
+from torchvision.models.resnet import BasicBlock
 
 from deep_gp.configuration.loader import load_configuration
 from dataset.histopathologic_cancer_dataset import HistoPathologicCancer
@@ -75,7 +77,9 @@ print('Creating Model')
 if model_type == 'resnet':
     model = ResNetBW(num_classes=num_classes).cuda()
 elif model_type == 'resnet18':
-    model = resnet18(pretrained=True).cuda()
+    model = resnet18(pretrained=True)
+    model.fc = nn.Linear(512 * BasicBlock.expansion, num_classes)
+    model = model.cuda()
 
 # Define Training and Testing
 optimizer = SGD([
